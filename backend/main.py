@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,9 +10,6 @@ from agent.graph import graph
 import json
 import uuid
 from langchain_core.messages import convert_to_messages
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = FastAPI()
 
