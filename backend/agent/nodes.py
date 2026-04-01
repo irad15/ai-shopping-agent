@@ -16,7 +16,7 @@ def agent_node(state: AgentState):
     
     if not any(isinstance(m, SystemMessage) for m in messages):
         sys_msg = SystemMessage(
-            content="You are a helpful BazaK shopping assistant. Help the user find products and browse categories using the provided tools."
+            content="You are a helpful shopping assistant. Help the user find products and browse categories using the provided tools."
         )
         messages = [sys_msg] + list(messages)
     
