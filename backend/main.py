@@ -25,14 +25,27 @@ class ChatRequest(BaseModel):
     messages: List[Dict[str, Any]]
 
 def extract_content(msg: Dict[str, Any]) -> str:
-    """Extract text content from a message in either v3 ({role, content}) or v6 ({role, parts}) format."""
-    # v3 format: { role: "user", content: "Hello" }
-    if "content" in msg and isinstance(msg["content"], str):
-        return msg["content"]
-    # v6 format: { role: "user", parts: [{ type: "text", text: "Hello" }] }
-    if "parts" in msg:
+    """Extract text content from a message in multiple formats:
+    - v3 string: { role, content: "Hello" }
+    - content array: { role, content: [{ type: "text", text: "Hello" }] }  <- assistant-ui format
+    - parts array: { role, parts: [{ type: "text", text: "Hello" }] }
+    """
+    content = msg.get("content")
+    # String content
+    if isinstance(content, str):
+        return content
+    # Content as a list of parts (assistant-ui / AI SDK format)
+    if isinstance(content, list):
         texts = []
-        for part in msg["parts"]:
+        for part in content:
+            if isinstance(part, dict) and part.get("type") == "text":
+                texts.append(part.get("text", ""))
+        return " ".join(texts)
+    # Legacy parts key
+    parts = msg.get("parts")
+    if isinstance(parts, list):
+        texts = []
+        for part in parts:
             if isinstance(part, dict) and part.get("type") == "text":
                 texts.append(part.get("text", ""))
         return " ".join(texts)
@@ -46,12 +59,59 @@ async def stream_generator(messages_data: List[Dict[str, Any]]):
     for m in messages_data:
         role = m.get("role")
         content = extract_content(m)
+        
         if role == "user":
             langchain_msgs.append({"type": "human", "content": content})
+            
         elif role == "assistant":
-            langchain_msgs.append({"type": "ai", "content": content})
+            # Extract tool calls from both 'toolInvocations' (Vercel) and 'tool_calls' (Standard)
+            tool_calls = []
+            
+            # 1. Check for Vercel toolInvocations
+            if "toolInvocations" in m:
+                for ti in m["toolInvocations"]:
+                    tc_id = ti.get("toolCallId") or ti.get("id") or ti.get("tool_call_id")
+                    if tc_id:
+                        tool_calls.append({
+                            "id": tc_id,
+                            "name": ti.get("toolName") or ti.get("name"),
+                            "args": ti.get("args") or {}
+                        })
+            
+            # 2. Check for standard tool_calls
+            elif "tool_calls" in m and isinstance(m["tool_calls"], list):
+                for tc in m["tool_calls"]:
+                    tc_id = tc.get("id") or tc.get("tool_call_id")
+                    if tc_id:
+                        tool_calls.append({
+                            "id": tc_id,
+                            "name": tc.get("name"),
+                            "args": tc.get("args") or {}
+                        })
+            
+            langchain_msgs.append({
+                "type": "ai", 
+                "content": content,
+                "tool_calls": tool_calls if tool_calls else None
+            })
+            
+        elif role == "tool":
+            # Tool messages MUST have a valid ID. Try all common keys.
+            tc_id = m.get("toolCallId") or m.get("id") or m.get("tool_call_id")
+            if tc_id:
+                langchain_msgs.append({
+                    "type": "tool",
+                    "content": content,
+                    "tool_call_id": tc_id
+                })
+            else:
+                # If we have role: "tool" but no ID, we MUST skip it to avoid KeyError in LangChain
+                print(f"WARNING: Skipping tool message with missing ID: {m}")
+                continue
+                
         else:
-            langchain_msgs.append({"type": role, "content": content})
+            # Fallback for system or unknown roles
+            langchain_msgs.append({"type": role if role else "human", "content": content})
             
     langchain_messages = convert_to_messages(langchain_msgs)
     

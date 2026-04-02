@@ -65,6 +65,9 @@ export async function POST(req: NextRequest) {
       if (remaining.trim()) {
         processLine(remaining, controller);
       }
+      // The Vercel Data Stream Protocol requires a finish marker.
+      // assistant-ui's useDataStreamRuntime throws if this is absent.
+      controller.enqueue(encoder.encode(`d:{"finishReason":"stop"}\n`));
     }
   });
 
