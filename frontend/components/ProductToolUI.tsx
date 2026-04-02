@@ -2,26 +2,32 @@
 
 import { makeAssistantToolUI } from '@assistant-ui/react';
 import ProductCard from '@/components/ProductCard';
+import { z } from 'zod';
+
+// Define Zod schemas for runtime validation
+const ProductSchema = z.object({
+  id: z.number(),
+  title: z.string().default('Untitled Product'),
+  price: z.number().default(0),
+  description: z.string().default(''),
+  thumbnail: z.string().optional(),
+  rating: z.number().optional(),
+  brand: z.string().optional(),
+  discountPercentage: z.number().optional(),
+});
+
+const ProductResultSchema = z.object({
+  products: z.array(ProductSchema).optional(),
+});
 
 type ProductArgs = {
   q?: string;    // search_products arg
   slug?: string; // get_products_by_category arg
 };
 
-type ProductResult = {
-  products?: Array<{
-    id: number;
-    title: string;
-    price: number;
-    description: string;
-    thumbnail?: string;
-    rating?: number;
-    brand?: string;
-    discountPercentage?: number;
-  }>;
-};
+type ProductResult = z.infer<typeof ProductResultSchema>;
 
-function ProductResultGrid({ status, result }: { status: { type: string }; result?: ProductResult }) {
+function ProductResultGrid({ status, result }: { status: { type: string }; result?: any }) {
   if (status.type === 'running') {
     return (
       <div className="flex items-center gap-2 px-4 py-3 text-xs text-zinc-400">
@@ -31,7 +37,19 @@ function ProductResultGrid({ status, result }: { status: { type: string }; resul
     );
   }
 
-  const products = result?.products ?? [];
+  // Runtime validation using Zod
+  const validation = ProductResultSchema.safeParse(result);
+
+  if (!validation.success) {
+    console.error('Malformed product data:', validation.error);
+    return (
+      <div className="px-4 py-3 text-xs text-red-400 bg-red-400/10 rounded-lg border border-red-400/20 mx-3">
+        Error: Received malformed product data from the agent.
+      </div>
+    );
+  }
+
+  const products = validation.data.products ?? [];
 
   if (products.length === 0) {
     return (
