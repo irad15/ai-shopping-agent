@@ -56,10 +56,43 @@ async def stream_generator(messages_data: List[Dict[str, Any]]):
     langchain_messages = convert_to_messages(langchain_msgs)
     
     async for event in graph.astream_events({"messages": langchain_messages}, config=config, version="v2"):
-        if event["event"] == "on_chat_model_stream":
+        kind = event["event"]
+        
+        # 1. Stream text chunks from the LLM
+        if kind == "on_chat_model_stream":
             chunk = event["data"]["chunk"]
             if chunk.content:
-                yield chunk.content
+                yield json.dumps({"type": "text", "content": chunk.content}) + "\n"
+        
+        # 2. Detect tool calls when the LLM finishes a generation step
+        elif kind == "on_chat_model_end":
+            msg = event["data"]["output"]
+            if hasattr(msg, "tool_calls") and msg.tool_calls:
+                for tc in msg.tool_calls:
+                    yield json.dumps({
+                        "type": "tool_call",
+                        "toolCallId": tc["id"],
+                        "toolName": tc["name"],
+                        "args": tc["args"],
+                    }) + "\n"
+        
+        # 3. Emit tool results when a tool finishes execution
+        elif kind == "on_tool_end":
+            output = event["data"]["output"]
+            # ToolMessage from LangChain's ToolNode
+            if hasattr(output, "tool_call_id"):
+                result = output.content
+                # Parse stringified JSON back to a dict
+                if isinstance(result, str):
+                    try:
+                        result = json.loads(result)
+                    except (json.JSONDecodeError, ValueError):
+                        pass
+                yield json.dumps({
+                    "type": "tool_result",
+                    "toolCallId": output.tool_call_id,
+                    "result": result,
+                }) + "\n"
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
@@ -67,3 +100,4 @@ async def chat_endpoint(request: ChatRequest):
         stream_generator(request.messages),
         media_type="text/plain"
     )
+

@@ -5,13 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useChat } from '@ai-sdk/react';
+import ProductCard from '@/components/ProductCard';
 
-// Define our own simple Message type
-type Message = {
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-};
+// Tool names that return product data
+const PRODUCT_TOOLS = ['search_products', 'get_products_by_category'];
 
 export default function Chat() {
     const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
@@ -28,7 +25,6 @@ export default function Chat() {
         scrollToBottom();
     }, [messages]);
 
-
     return (
         <div className="flex flex-col w-full max-w-2xl mx-auto h-[80vh] bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl overflow-hidden">
 
@@ -39,7 +35,7 @@ export default function Chat() {
                         <BriefcaseBusiness className="w-5 h-5 text-indigo-400" />
                     </div>
                     <div>
-                        <h2 className="text-sm font-semibold text-zinc-100">Irad's AI Assistant</h2>
+                        <h2 className="text-sm font-semibold text-zinc-100">Irad&apos;s AI Assistant</h2>
                         <p className="text-xs text-zinc-500">Your shopping assistant</p>
                     </div>
                 </div>
@@ -78,12 +74,71 @@ export default function Chat() {
                             </div>
 
                             <div className={cn(
-                                "px-4 py-2.5 rounded-2xl max-w-[80%] text-sm leading-relaxed",
+                                "rounded-2xl max-w-[80%] text-sm leading-relaxed",
                                 m.role === 'user'
-                                    ? "bg-indigo-600 text-white rounded-tr-sm"
+                                    ? "px-4 py-2.5 bg-indigo-600 text-white rounded-tr-sm"
                                     : "bg-zinc-800 text-zinc-200 rounded-tl-sm border border-zinc-700/50"
                             )}>
-                                {m.content}
+                                {/* Text content */}
+                                {m.content && (
+                                    <div className={cn(
+                                        m.role !== 'user' ? "px-4 py-2.5" : ""
+                                    )}>
+                                        {m.content}
+                                    </div>
+                                )}
+
+                                {/* Tool invocations — product cards */}
+                                {m.toolInvocations?.map((toolInvocation) => {
+                                    if (!PRODUCT_TOOLS.includes(toolInvocation.toolName)) {
+                                        return null;
+                                    }
+
+                                    if (toolInvocation.state === 'call' || toolInvocation.state === 'partial-call') {
+                                        return (
+                                            <div key={toolInvocation.toolCallId} className="px-4 py-3">
+                                                <div className="flex items-center gap-2 text-xs text-zinc-400">
+                                                    <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                                                    Searching for products...
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
+                                    if (toolInvocation.state === 'result') {
+                                        const result = toolInvocation.result;
+                                        const products = result?.products ?? [];
+
+                                        if (products.length === 0) {
+                                            return (
+                                                <div key={toolInvocation.toolCallId} className="px-4 py-3 text-xs text-zinc-500">
+                                                    No products found.
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <div key={toolInvocation.toolCallId} className="p-3">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {products.slice(0, 4).map((product: any) => (
+                                                        <ProductCard
+                                                            key={product.id}
+                                                            title={product.title}
+                                                            price={product.price}
+                                                            description={product.description}
+                                                            imageUrl={product.thumbnail}
+                                                            rating={product.rating}
+                                                            brand={product.brand}
+                                                            discountPercentage={product.discountPercentage}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
+                                    return null;
+                                })}
                             </div>
                         </motion.div>
                     ))}

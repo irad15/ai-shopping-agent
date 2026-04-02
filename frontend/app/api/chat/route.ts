@@ -13,22 +13,57 @@ export async function POST(req: NextRequest) {
     return new Response('Error connecting to backend', { status: response.status });
   }
 
-  // Create a manual encoder to translate raw text into the Vercel Protocol
   const decoder = new TextDecoder('utf-8');
   const encoder = new TextEncoder();
+  let buffer = '';
+
+  function processLine(line: string, controller: TransformStreamDefaultController) {
+    if (!line.trim()) return;
+
+    try {
+      const event = JSON.parse(line);
+
+      if (event.type === 'text') {
+        // 0: = text chunk
+        controller.enqueue(encoder.encode(`0:${JSON.stringify(event.content)}\n`));
+      } else if (event.type === 'tool_call') {
+        // 9: = tool call
+        controller.enqueue(encoder.encode(`9:${JSON.stringify({
+          toolCallId: event.toolCallId,
+          toolName: event.toolName,
+          args: event.args,
+        })}\n`));
+      } else if (event.type === 'tool_result') {
+        // a: = tool result
+        controller.enqueue(encoder.encode(`a:${JSON.stringify({
+          toolCallId: event.toolCallId,
+          result: event.result,
+        })}\n`));
+      }
+    } catch {
+      // Fallback: treat unparseable data as raw text
+      if (line.trim()) {
+        controller.enqueue(encoder.encode(`0:${JSON.stringify(line)}\n`));
+      }
+    }
+  }
 
   const transformStream = new TransformStream({
     transform(chunk, controller) {
-      const text = decoder.decode(chunk, { stream: true });
-      if (text) {
-        // Vercel AI SDK expects text chunks to be prefixed with `0:` and stringified
-        controller.enqueue(encoder.encode(`0:${JSON.stringify(text)}\n`));
+      buffer += decoder.decode(chunk, { stream: true });
+      const lines = buffer.split('\n');
+      // Keep the last (potentially incomplete) line in the buffer
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        processLine(line, controller);
       }
     },
     flush(controller) {
-      const text = decoder.decode();
-      if (text) {
-        controller.enqueue(encoder.encode(`0:${JSON.stringify(text)}\n`));
+      // Process any remaining buffered data
+      const remaining = buffer + decoder.decode();
+      if (remaining.trim()) {
+        processLine(remaining, controller);
       }
     }
   });
