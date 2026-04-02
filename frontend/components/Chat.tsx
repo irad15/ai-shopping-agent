@@ -2,8 +2,9 @@
 
 import { Send, BriefcaseBusiness, User, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { useChat } from '@ai-sdk/react';
 
 // Define our own simple Message type
 type Message = {
@@ -13,16 +14,9 @@ type Message = {
 };
 
 export default function Chat() {
-    // 1. Simple State: No magic hooks, just data.
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [sessionId, setSessionId] = useState<string>('');
-
-    useEffect(() => {
-        // Generate a random session ID on mount
-        setSessionId(crypto.randomUUID());
-    }, []);
+    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+        api: '/api/chat',
+    });
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -34,86 +28,6 @@ export default function Chat() {
         scrollToBottom();
     }, [messages]);
 
-    // 2. The Manual "Fetch" Function
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input.trim() || isLoading) return;
-
-        // A. Add User Message immediately
-        const userMsg: Message = {
-            id: Date.now().toString(),
-            role: 'user',
-            content: input
-        };
-        const assistantMsgId = (Date.now() + 1).toString();
-        const assistantMsg: Message = {
-            id: assistantMsgId,
-            role: 'assistant',
-            content: ''
-        };
-
-        setMessages(prev => [...prev, userMsg, assistantMsg]);
-        setInput('');
-        setIsLoading(true);
-
-        try {
-            // B. Send to Python Backend (Port 8000)
-            const apiUrl = 'http://localhost:8000/chat';
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [...messages, userMsg],
-                }),
-            });
-
-            if (!response.ok) throw new Error('Network error');
-
-            // C. Read the Streaming Response
-            const reader = response.body?.getReader();
-            if (!reader) throw new Error('No reader available');
-
-            const decoder = new TextDecoder();
-            let accumulatedContent = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = decoder.decode(value, { stream: true });
-                accumulatedContent += chunk;
-
-                // Update the last message (the assistant's) with the new chunk
-                setMessages(prev => {
-                    const newMessages = [...prev];
-                    const lastMsgIndex = newMessages.findIndex(m => m.id === assistantMsgId);
-                    if (lastMsgIndex !== -1) {
-                        newMessages[lastMsgIndex] = {
-                            ...newMessages[lastMsgIndex],
-                            content: accumulatedContent
-                        };
-                    }
-                    return newMessages;
-                });
-            }
-
-        } catch (error) {
-            console.error("Chat Error:", error);
-            setMessages(prev => {
-                const newMessages = [...prev];
-                const lastMsgIndex = newMessages.findIndex(m => m.id === assistantMsgId);
-                if (lastMsgIndex !== -1) {
-                    newMessages[lastMsgIndex] = {
-                        ...newMessages[lastMsgIndex],
-                        content: "⚠️ Sorry, I can't reach the business server right now."
-                    };
-                }
-                return newMessages;
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     return (
         <div className="flex flex-col w-full max-w-2xl mx-auto h-[80vh] bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl overflow-hidden">
@@ -185,7 +99,7 @@ export default function Chat() {
                         name="chat-input"
                         className="w-full bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all placeholder:text-zinc-600"
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
+                        onChange={handleInputChange}
                         placeholder="Type your request..."
                         disabled={isLoading}
                     />
