@@ -1,19 +1,12 @@
-"use client";
+import Chat from "@/components/Chat";
 
-import { AssistantRuntimeProvider } from "@assistant-ui/react";
-import { useChatRuntime, AssistantChatTransport } from "@assistant-ui/react-ai-sdk";
-import { Thread } from "@/components/assistant-ui/thread";
-
-export default function ChatPage() {
-  const runtime = useChatRuntime({
-    transport: new AssistantChatTransport({ api: "/api/chat" }),
-  });
-
+export default function Home() {
   return (
-    <div className="flex h-[100dvh] w-full flex-col">
-      <AssistantRuntimeProvider runtime={runtime}>
-        <Thread />
-      </AssistantRuntimeProvider>
-    </div>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-black p-4 md:p-24 selection:bg-indigo-500/30">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      <div className="z-10 w-full max-w-5xl items-center justify-center font-mono text-sm lg:flex">
+        <Chat />
+      </div>
+    </main>
   );
 }

@@ -24,17 +24,28 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     messages: List[Dict[str, Any]]
 
+def extract_content(msg: Dict[str, Any]) -> str:
+    """Extract text content from a message in either v3 ({role, content}) or v6 ({role, parts}) format."""
+    # v3 format: { role: "user", content: "Hello" }
+    if "content" in msg and isinstance(msg["content"], str):
+        return msg["content"]
+    # v6 format: { role: "user", parts: [{ type: "text", text: "Hello" }] }
+    if "parts" in msg:
+        texts = []
+        for part in msg["parts"]:
+            if isinstance(part, dict) and part.get("type") == "text":
+                texts.append(part.get("text", ""))
+        return " ".join(texts)
+    return ""
+
 async def stream_generator(messages_data: List[Dict[str, Any]]):
     thread_id = str(uuid.uuid4()) 
     config = {"configurable": {"thread_id": thread_id}}
     
-    # ai sdk sends 'user' or 'assistant'. convert_to_messages works if it is 'human' or 'ai', 
-    # but also supports 'user' and 'assistant' in recent langchain versions, assuming role structure.
-    # To be safe, we convert role to langchain type.
     langchain_msgs = []
     for m in messages_data:
         role = m.get("role")
-        content = m.get("content")
+        content = extract_content(m)
         if role == "user":
             langchain_msgs.append({"type": "human", "content": content})
         elif role == "assistant":
@@ -48,7 +59,7 @@ async def stream_generator(messages_data: List[Dict[str, Any]]):
         if event["event"] == "on_chat_model_stream":
             chunk = event["data"]["chunk"]
             if chunk.content:
-                yield f'0:{json.dumps(chunk.content)}\n'
+                yield chunk.content
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
