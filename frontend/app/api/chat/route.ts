@@ -22,29 +22,15 @@ export async function POST(req: NextRequest) {
 
     try {
       const event = JSON.parse(line);
+      const prefixMap: Record<string, string> = { text: '0:', tool_call: '9:', tool_result: 'a:' };
+      const prefix = prefixMap[event.type];
 
-      if (event.type === 'text') {
-        // 0: = text chunk
-        controller.enqueue(encoder.encode(`0:${JSON.stringify(event.content)}\n`));
-      } else if (event.type === 'tool_call') {
-        // 9: = tool call
-        controller.enqueue(encoder.encode(`9:${JSON.stringify({
-          toolCallId: event.toolCallId,
-          toolName: event.toolName,
-          args: event.args,
-        })}\n`));
-      } else if (event.type === 'tool_result') {
-        // a: = tool result
-        controller.enqueue(encoder.encode(`a:${JSON.stringify({
-          toolCallId: event.toolCallId,
-          result: event.result,
-        })}\n`));
+      if (prefix) {
+        const payload = event.type === 'text' ? event.content : event;
+        controller.enqueue(encoder.encode(`${prefix}${JSON.stringify(payload)}\n`));
       }
     } catch {
-      // Fallback: treat unparseable data as raw text
-      if (line.trim()) {
-        controller.enqueue(encoder.encode(`0:${JSON.stringify(line)}\n`));
-      }
+      if (line.trim()) controller.enqueue(encoder.encode(`0:${JSON.stringify(line)}\n`));
     }
   }
 

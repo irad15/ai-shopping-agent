@@ -5,7 +5,7 @@ from langgraph.prebuilt import ToolNode
 from .state import AgentState
 from .tools import tools
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+llm = ChatOpenAI(model="gpt-5.4-mini", temperature=0)
 llm_with_tools = llm.bind_tools(tools)
 
 tool_node = ToolNode(tools)

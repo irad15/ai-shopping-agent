@@ -27,31 +27,28 @@ type ProductArgs = {
 
 type ProductResult = z.infer<typeof ProductResultSchema>;
 
-function ProductResultGrid({ status, result }: { status: { type: string }; result?: any }) {
+const ProductResultGrid = ({ 
+  status, 
+  result 
+}: { 
+  status: { type: string }; 
+  result?: any 
+}) => {
   if (status.type === 'running') {
     return (
       <div className="flex items-center gap-2 px-4 py-3 text-xs text-zinc-400">
         <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-        Searching for products...
+        Searching...
       </div>
     );
   }
 
-  // Runtime validation using Zod
-  const validation = ProductResultSchema.safeParse(result);
+  const val = ProductResultSchema.safeParse(result);
+  if (!val.success) return null;
 
-  if (!validation.success) {
-    console.error('Malformed product data:', validation.error);
-    return (
-      <div className="px-4 py-3 text-xs text-red-400 bg-red-400/10 rounded-lg border border-red-400/20 mx-3">
-        Error: Received malformed product data from the agent.
-      </div>
-    );
-  }
-
-  const products = validation.data.products ?? [];
-
-  if (products.length === 0) {
+  const products = val.data.products ?? [];
+  
+  if (!products.length) {
     return (
       <div className="px-4 py-3 text-xs text-zinc-500">
         No products found.
@@ -60,45 +57,31 @@ function ProductResultGrid({ status, result }: { status: { type: string }; resul
   }
 
   return (
-    <div className="p-3">
-      <div className="grid grid-cols-2 gap-3">
-        {products.slice(0, 4).map((product) => (
-          <ProductCard
-            key={product.id}
-            title={product.title}
-            price={product.price}
-            description={product.description}
-            imageUrl={product.thumbnail}
-            rating={product.rating}
-            brand={product.brand}
-            discountPercentage={product.discountPercentage}
-          />
-        ))}
-      </div>
+    <div className="p-3 grid grid-cols-2 gap-3">
+      {products.slice(0, 4).map((p) => (
+        <ProductCard 
+          key={p.id} 
+          {...p} 
+          imageUrl={p.thumbnail} 
+        />
+      ))}
     </div>
   );
-}
+};
 
-const SearchProductsToolUI = makeAssistantToolUI<ProductArgs, ProductResult>({
-  toolName: 'search_products',
-  render: ({ args, status, result }) => (
-    <ProductResultGrid status={status} result={result} />
-  ),
-});
+const ToolUI = ({ name }: { name: string }) => {
+  const UI = makeAssistantToolUI<ProductArgs, ProductResult>({
+    toolName: name,
+    render: ({ status, result }) => (
+      <ProductResultGrid status={status} result={result} />
+    ),
+  });
+  return <UI />;
+};
 
-const GetProductsByCategoryToolUI = makeAssistantToolUI<ProductArgs, ProductResult>({
-  toolName: 'get_products_by_category',
-  render: ({ args, status, result }) => (
-    <ProductResultGrid status={status} result={result} />
-  ),
-});
-
-// Export a single component that registers both tool UIs inside the AssistantRuntimeProvider
-export function ProductToolUI() {
-  return (
-    <>
-      <SearchProductsToolUI />
-      <GetProductsByCategoryToolUI />
-    </>
-  );
-}
+export const ProductToolUI = () => (
+  <>
+    <ToolUI name="search_products" />
+    <ToolUI name="get_products_by_category" />
+  </>
+);

@@ -1,17 +1,32 @@
-import json
 from typing import List, Dict, Any
 from langchain_core.messages import convert_to_messages
 
-# Mock extract_content since it's in main.py
 def extract_content(msg: Dict[str, Any]) -> str:
+    """Extract text content from a message in multiple formats:
+    - v3 string: { role, content: "Hello" }
+    - content array: { role, content: [{ type: "text", text: "Hello" }] }
+    - parts array: { role, parts: [{ type: "text", text: "Hello" }] }
+    """
     content = msg.get("content")
     if isinstance(content, str):
         return content
     if isinstance(content, list):
-        return " ".join([p.get("text", "") for p in content if p.get("type") == "text"])
+        texts = []
+        for part in content:
+            if isinstance(part, dict) and part.get("type") == "text":
+                texts.append(part.get("text", ""))
+        return " ".join(texts)
+    parts = msg.get("parts")
+    if isinstance(parts, list):
+        texts = []
+        for part in parts:
+            if isinstance(part, dict) and part.get("type") == "text":
+                texts.append(part.get("text", ""))
+        return " ".join(texts)
     return ""
 
-def test_conversion(messages_data: List[Dict[str, Any]]):
+def to_langchain_messages(messages_data: List[Dict[str, Any]]):
+    """Converts Vercel AI SDK / assistant-ui message formats to LangChain messages."""
     langchain_msgs = []
     for m in messages_data:
         role = m.get("role")
@@ -19,6 +34,7 @@ def test_conversion(messages_data: List[Dict[str, Any]]):
         
         if role == "user":
             langchain_msgs.append({"type": "human", "content": content})
+            
         elif role == "assistant":
             tool_calls = []
             if "toolInvocations" in m:
@@ -39,11 +55,13 @@ def test_conversion(messages_data: List[Dict[str, Any]]):
                             "name": tc.get("name"),
                             "args": tc.get("args") or {}
                         })
+            
             langchain_msgs.append({
                 "type": "ai", 
                 "content": content,
                 "tool_calls": tool_calls if tool_calls else None
             })
+            
         elif role == "tool":
             tc_id = m.get("toolCallId") or m.get("id") or m.get("tool_call_id")
             if tc_id:
@@ -53,40 +71,9 @@ def test_conversion(messages_data: List[Dict[str, Any]]):
                     "tool_call_id": tc_id
                 })
             else:
-                print(f"DEBUG: Skipping tool message with missing ID: {m}")
                 continue
+                
         else:
             langchain_msgs.append({"type": role if role else "human", "content": content})
             
-    try:
-        messages = convert_to_messages(langchain_msgs)
-        print("SUCCESS: Conversion completed without crash.")
-        for msg in messages:
-            print(f"  {type(msg).__name__}: {msg.content[:50]}... (ID: {getattr(msg, 'tool_call_id', 'N/A')})")
-    except Exception as e:
-        print(f"FAILURE: {type(e).__name__}: {e}")
-
-# Test Case: Multi-turn history with tool calls and results
-history_with_tools = [
-    {"role": "user", "content": "find laptops"},
-    {
-        "role": "assistant",
-        "content": "Searching for laptops...",
-        "toolInvocations": [
-            {
-                "toolCallId": "call_123",
-                "toolName": "search_products",
-                "args": {"q": "laptops"}
-            }
-        ]
-    },
-    {
-        "role": "tool",
-        "content": "Found 5 laptops",
-        "toolCallId": "call_123"
-    },
-    {"role": "user", "content": "which is cheapest?"}
-]
-
-print("Running test with tool history...")
-test_conversion(history_with_tools)
+    return convert_to_messages(langchain_msgs)
