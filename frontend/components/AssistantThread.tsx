@@ -10,6 +10,11 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 
+/**
+ * ChatMessage: A helper component to render individual message bubbles.
+ * It uses 'framer-motion' for entry animations and Assistant UI primitives
+ * for structural content.
+ */
 function ChatMessage({
   role,
   children
@@ -48,6 +53,11 @@ function ChatMessage({
   );
 }
 
+/**
+ * AssistantThread: The main UI component for the conversation.
+ * It assembles the Header, Message Viewport, and Input Composer using
+ * Assistant UI's 'ThreadPrimitive' and 'ComposerPrimitive' components.
+ */
 export function AssistantThread() {
   return (
     <ThreadPrimitive.Root className="flex flex-col w-full max-w-2xl mx-auto h-[80vh] bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl overflow-hidden">
@@ -78,6 +88,11 @@ export function AssistantThread() {
       </div>
 
       {/* Messages Viewport */}
+      {/* 
+          Messages Viewport: 
+          - Handles the scrolling behavior for the conversation history.
+          - Dynamically maps over messages using custom 'ChatMessage' styling.
+      */}
       <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto p-6 space-y-6">
         <ThreadPrimitive.Empty>
           <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-4 opacity-50 min-h-[300px]">
@@ -104,6 +119,11 @@ export function AssistantThread() {
 
       {/* Input Composer */}
       <div className="p-4 bg-zinc-950 border-t border-zinc-800 shrink-0">
+        {/* 
+            Input Composer: 
+            - Provides the text area for user input.
+            - Handles submission through Assistant UI's runtime.
+        */}
         <ComposerPrimitive.Root className="relative">
           <ComposerPrimitive.Input
             autoFocus

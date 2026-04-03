@@ -27,12 +27,20 @@ type ProductArgs = {
 
 type ProductResult = z.infer<typeof ProductResultSchema>;
 
-const ProductResultGrid = ({ 
-  status, 
-  result 
-}: { 
-  status: { type: string }; 
-  result?: any 
+/**
+ * ProductResultGrid: The Visual Presentation Layer
+ * 
+ * This component looks at the current `status` (which comes from the 9: and a: prefixes)
+ * and the `result` data to decide what to show the user.
+ */
+const ProductResultGrid = ({
+  status,
+  result
+}: {
+  // status.type is 'running' when the 9: prefix is received (Tool Call started)
+  // status.type becomes 'complete' when the a: prefix is received (Tool Result arrived)
+  status: { type: string };
+  result?: any
 }) => {
   if (status.type === 'running') {
     return (
@@ -43,11 +51,12 @@ const ProductResultGrid = ({
     );
   }
 
+  // Once status is no longer 'running', we safely parse the 'a:' result payload
   const val = ProductResultSchema.safeParse(result);
   if (!val.success) return null;
 
   const products = val.data.products ?? [];
-  
+
   if (!products.length) {
     return (
       <div className="px-4 py-3 text-xs text-zinc-500">
@@ -59,19 +68,28 @@ const ProductResultGrid = ({
   return (
     <div className="p-3 grid grid-cols-2 gap-3">
       {products.slice(0, 4).map((p) => (
-        <ProductCard 
-          key={p.id} 
-          {...p} 
-          imageUrl={p.thumbnail} 
+        <ProductCard
+          key={p.id}
+          {...p}
+          imageUrl={p.thumbnail}
         />
       ))}
     </div>
   );
 };
 
+/**
+ * ToolUI Builder: The Integration Layer
+ * 
+ * This builds a listener component using `@assistant-ui/react`. 
+ * It automatically matches the `toolCallId` from the backend stream.
+ */
 const ToolUI = ({ name }: { name: string }) => {
   const UI = makeAssistantToolUI<ProductArgs, ProductResult>({
+    // 1. Matches the `toolName` emitted from the backend during the 9: stream event
     toolName: name,
+    // 2. Automatically updates `status` (running/complete) and provides `result` 
+    //    from the a: stream event by matching the hidden `toolCallId` natively.
     render: ({ status, result }) => (
       <ProductResultGrid status={status} result={result} />
     ),
@@ -79,6 +97,12 @@ const ToolUI = ({ name }: { name: string }) => {
   return <UI />;
 };
 
+/**
+ * Main ProductToolUI Component
+ * 
+ * We mount this component inside `MyAssistant.tsx` so the Vercel API bridge
+ * can discover it. We attach it to the specific function names that LangGraph uses.
+ */
 export const ProductToolUI = () => (
   <>
     <ToolUI name="search_products" />

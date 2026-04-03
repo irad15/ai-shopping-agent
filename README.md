@@ -46,9 +46,8 @@ Start the FastAPI server via your virtual environment:
 
 ```bash
 cd backend
-uv run uvicorn main:app --reload
+uv run python main.py
 ```
-*If you activated a traditional `pip` venv, just run `uvicorn main:app --reload`.*
 
 The API will be running at **http://localhost:8000**.
 
@@ -80,3 +79,20 @@ npm run dev
 ```
 
 The user interface will be available at **http://localhost:3000**. Open this in your browser to interact with the agent.
+
+---
+
+## 3. Documentation & Visualization
+
+### Learning the Architecture
+For a deep dive into how the system works, please refer to the following guides:
+- [Backend Learning Guide](docs/learn_backend.md)
+- [Frontend Learning Guide](docs/learn_frontend.md)
+
+### Refreshing the Agent Logic Graph
+The project includes a built-in tool to visualize the AI agent's logic flow. If you modify the graph in `backend/agent/graph.py`, you can refresh the visualization in `docs/agent_graph.md` by running:
+
+```bash
+cd backend
+uv run python generate_graph_docs.py
+```
