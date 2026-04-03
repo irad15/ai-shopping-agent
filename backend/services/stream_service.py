@@ -1,24 +1,20 @@
 import json
-import uuid
 from typing import List, Dict, Any
-from agent.graph import graph
 from utils.message_converter import to_langchain_messages
 
-async def stream_generator(messages_data: List[Dict[str, Any]]):
+async def stream_generator(agent, thread_id: str, messages_data: List[Dict[str, Any]]):
     """
-    Acts as the bidirectional bridge between the Vercel AI SDK and the LangGraph agent.
-    It translates incoming frontend messages into LangChain objects and reformats
-    outgoing agent events into a streaming JSON protocol for the client.
+    Acts as the bidirectional bridge between the Vercel AI SDK and the dynamically compiled LangGraph agent.
     """
-    # Unique identifier for the conversation session
-    thread_id = str(uuid.uuid4())
+    # Using the continuous thread_id from the frontend to link to Postgres
     config = {"configurable": {"thread_id": thread_id}}
     
     # Translate input data format to LangChain message objects
+    # Note: History array is pruned at the Next.js API level, so this only contains the newest request.
     langchain_messages = to_langchain_messages(messages_data)
-    
-    # Iterate through events produced by the LangGraph workflow
-    async for event in graph.astream_events({"messages": langchain_messages}, config=config, version="v2"):
+
+    # Iterate through events produced by the dynamically injected agent
+    async for event in agent.astream_events({"messages": langchain_messages}, config=config, version="v2"):
         kind = event["event"]
         
         # Capture and yield incremental text output from the chat model

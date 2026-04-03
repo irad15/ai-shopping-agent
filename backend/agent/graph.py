@@ -1,5 +1,4 @@
 from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import MemorySaver
 from .state import AgentState
 from .nodes import agent_node, tool_node
 from .edges import should_continue
@@ -27,8 +26,4 @@ workflow.add_conditional_edges(
 # After a tool is finished, always return to the Agent to explain the result
 workflow.add_edge("tools", "agent")
 
-# Enable conversational memory (checkpointer)
-memory = MemorySaver()
-
-# Finalize the workflow into a runnable graph
-graph = workflow.compile(checkpointer=memory)
+# The graph is left uncompiled to allow FastAPI to cleanly inject the database checkpointer

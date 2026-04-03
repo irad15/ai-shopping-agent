@@ -11,7 +11,13 @@ export async function POST(req: NextRequest) {
   // 1. INCOMING: Receive the JSON request body from the Browser (Frontend)
   const body = await req.json();
 
-  // 2. OUT TO BACKEND: This block sends the user's message to the Python server for processing.
+  // Optimization: Intercept and aggressively aggressively shrink the payload down to just the newest message 
+  // since the Postgres database natively retrieves all historical context.
+  if (body.messages && body.messages.length > 0) {
+    body.messages = [body.messages[body.messages.length - 1]];
+  }
+
+  // 2. OUT TO BACKEND: Send the heavily compressed payload to the Python server.
   const response = await fetch('http://localhost:8000/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

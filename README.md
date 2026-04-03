@@ -8,7 +8,35 @@ Follow the instructions below to get your virtual environments set up and run th
 
 ---
 
-## 1. Backend Setup
+## 1. Database Infrastructure Setup
+
+This project uses an industry-grade Stateful architecture, meaning all conversation history is securely backed up and retrieved via LangGraph's native PostgreSQL Checkpointer logic. 
+
+**You MUST have Docker Desktop (or your preferred Docker daemon) running on your machine.**
+
+To spin up the PostgreSQL instance:
+
+```bash
+cd backend
+docker-compose up -d
+```
+The database will automatically boot up and become instantly available for the backend application on port `5432`.
+
+When you are finished developing and want to securely shut down the database container (your connection history will be safely preserved on your hard drive), run:
+
+```bash
+docker-compose down
+```
+
+To **completely wipe the database** and delete all chat history/persistent state:
+
+```bash
+docker-compose down -v
+```
+
+---
+
+## 2. Backend Setup
 
 The backend uses [uv](https://github.com/astral-sh/uv) for fast and reliable dependency management. This ensures your virtual environments (VENVs) sync perfectly with the lockfile for consistent development.
 
