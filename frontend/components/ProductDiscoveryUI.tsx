@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * ProductDiscoveryUI: The Generative UI Bridge.
+ * Links the AI's product search tool calls to the visual ProductCard 
+ * components using zod validation and Assistant UI tool rendering.
+ */
+
+
 import { makeAssistantToolUI } from '@assistant-ui/react';
 import ProductCard from '@/components/ProductCard';
 import { z } from 'zod';
@@ -67,7 +74,7 @@ const ProductResultGrid = ({
 
   return (
     <div className="p-3 grid grid-cols-2 gap-3">
-      {products.slice(0, 4).map((p) => (
+      {products.map((p) => (
         <ProductCard
           key={p.id}
           {...p}
@@ -98,12 +105,12 @@ const ToolUI = ({ name }: { name: string }) => {
 };
 
 /**
- * Main ProductToolUI Component
+ * Main ProductDiscoveryUI Component
  * 
- * We mount this component inside `MyAssistant.tsx` so the Vercel API bridge
+ * We mount this component inside `ChatRuntimeProvider.tsx` so the Vercel API bridge
  * can discover it. We attach it to the specific function names that LangGraph uses.
  */
-export const ProductToolUI = () => (
+export const ProductDiscoveryUI = () => (
   <>
     <ToolUI name="search_products" />
     <ToolUI name="get_products_by_category" />

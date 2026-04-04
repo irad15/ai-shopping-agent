@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   // 1. INCOMING: Receive the JSON request body from the Browser (Frontend)
   const body = await req.json();
 
-  // Optimization: Intercept and aggressively aggressively shrink the payload down to just the newest message 
+  // Optimization: Reduce the payload down to just the newest message 
   // since the Postgres database natively retrieves all historical context.
   if (body.messages && body.messages.length > 0) {
     body.messages = [body.messages[body.messages.length - 1]];
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     transform(chunk, controller) {
       buffer += decoder.decode(chunk, { stream: true });
       const lines = buffer.split('\n');
-      
+
       // Keep any incomplete line in the buffer for the next chunk
       buffer = lines.pop() || '';
 
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       if (remaining.trim()) {
         processLine(remaining, controller);
       }
-      
+
       // 'd:' prefix tells the frontend runtime that the stream has ended successfully
       controller.enqueue(encoder.encode(`d:{"finishReason":"stop"}\n`));
     }

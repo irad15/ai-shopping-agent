@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * ChatInterface: The Visual Stage.
+ * Renders the chat bubbles, viewport, and input composer using 
+ * Assistant UI primitives and Tailwind CSS styling.
+ */
+
+
 import {
   ThreadPrimitive,
   ComposerPrimitive,
@@ -54,11 +61,11 @@ function ChatMessage({
 }
 
 /**
- * AssistantThread: The main UI component for the conversation.
+ * ChatInterface: The main UI component for the conversation.
  * It assembles the Header, Message Viewport, and Input Composer using
  * Assistant UI's 'ThreadPrimitive' and 'ComposerPrimitive' components.
  */
-export function AssistantThread() {
+export function ChatInterface() {
   return (
     <ThreadPrimitive.Root className="flex flex-col w-full max-w-2xl mx-auto h-[80vh] bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl overflow-hidden">
 

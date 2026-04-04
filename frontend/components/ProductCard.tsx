@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * ProductCard: The Visual Presentation Component.
+ * A reusable UI card for individual products with branding, price logic, 
+ * and framer-motion animations.
+ */
+
+
 import { Package, Star, Tag } from 'lucide-react';
 import { motion } from 'framer-motion';
 
