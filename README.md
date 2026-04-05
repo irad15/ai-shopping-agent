@@ -9,7 +9,7 @@ A premium, production-grade AI shopping assistant built with **LangGraph**, **Ne
 Before starting, ensure you have the following installed:
 - **Python 3.12+**
 - **Node.js 18+** (with `npm`)
-- **Docker & Docker Compose** (for persistent PostgreSQL history)
+- **PostgreSQL 15+** (Docker is provided for local setup, but any Postgres instance will work)
 - **OpenAI API Key** (for the LLM reasoning)
 
 #### **📦 Installing `uv`**
@@ -28,8 +28,13 @@ This project uses `uv` for lightning-fast Python dependency management. If you d
 
 ## 🚀 Quick Start
 
-### 1. Database (Docker)
-Start the PostgreSQL instance for persistent conversation history:
+#### **Your Connection String**
+Regardless of your choice, you will need a `DATABASE_URL` for your `.env` file:
+- **For local Docker:** `postgresql://postgres:postgres@localhost:5432/postgres`
+- **For Cloud (e.g. Supabase):** `postgresql://user:pass@host:port/db?sslmode=require`
+
+#### **Option A: Local Docker (Recommended)**
+Start the PostgreSQL instance in the background:
 ```bash
 cd backend
 # Start the database in the background
@@ -52,8 +57,8 @@ cd backend
 uv sync
 
 # Set up environment variables (.env)
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres
-OPENAI_API_KEY=your_key
+DATABASE_URL=your_postgres_url
+OPENAI_API_KEY=your_openai_key
 
 # Start the server
 uv run python main.py
@@ -76,7 +81,7 @@ Open [http://localhost:3000](http://localhost:3000) to start shopping.
 ## 🛠️ Technical Architecture
 
 ### **Core Architecture Foundations**
-* **Agentic Core (LangGraph):** We use LangGraph to manage the agent's state and tool execution. This enables multi-turn loops and recovery from tool errors, moving beyond simple linear chains.
+* **Agentic Core (LangGraph):** We use LangGraph to manage the agent's state and tool execution. It is a highly convenient framework that automatically handles "hidden" background processes—like state persistence to the database—allowing for complex multi-turn loops and error recovery without manual state management.
 * **Durable Memory (PostgreSQL):** Implementation of `AsyncPostgresSaver` ensures conversation "Checkpoints" are saved in real-time, preventing data loss during refreshes or crashes. The `thread_id` acts as the unique linking key (effectively the user's identifier), allowing the agent to instantly retrieve the exact message history and conversational context from the database upon every new request.
 * **Vercel AI SDK:** Acts as the primary data-streaming protocol. It normalizes the communication between the Python backend and the React frontend, enabling low-latency, character-by-character message delivery.
 * **assistant-ui:** A set of headless React components that connect to the Vercel AI SDK. It provides the core chat logic, tool UI registration, and streaming state management for a professional UI.
@@ -93,13 +98,11 @@ By capturing internal LangGraph events via `astream_events`, the **Streaming Bri
 ## 🧠 Design Philosophy
 
 ### **Assumptions**
-* **Perceived Performance > Simplicity:** We assumed that seeing the agent’s progress in real-time (via the Streaming Bridge) is more valuable to the user than a simpler, purely REST-based backend that only returns finished results.
 * **Consultative Social Proof:** We assumed that designing the agent as a "Consultative Salesperson" who actively integrates user reviews into its sales pitch creates a more natural, trustworthy experience than simply listing product specs.
 * **Database as Source of Truth:** We assume the database is always reachable. To optimize, the frontend (`Route.ts`) only sends the *latest* message, relying on the backend to reconstruct history from the `thread_id`.
 
 ### **Tradeoffs**
 * **Protocol Complexity:** We chose to manually bridge LangGraph events to the Vercel protocol. This increased development time but resulted in a "leaner" Frontend that doesn't need to understand LangGraph's internal state logic.
-* **Aggressive Payload Optimization:** In `Route.ts`, the frontend is designed to send only the last message to the server rather than the full chat history. This aggressively optimizes the payload, but the tradeoff is total reliance on the PostgreSQL database; if the DB fails, the agent loses all memory because the frontend acts with zero backup.
 * **Initial Render Delay:** In `ChatRuntimeProvider.tsx`, we consciously delay rendering the UI until the full history is fetched from Postgres. This prevents "visual flickering" and layout shifts at the cost of a slightly longer initial load time.
 
 ### **Limitations**

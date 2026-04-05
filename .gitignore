@@ -1,3 +1,4 @@
 # Root ignores
 docs/
 .DS_Store
+.vscode/
