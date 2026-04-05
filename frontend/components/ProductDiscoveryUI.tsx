@@ -21,6 +21,7 @@ const ProductSchema = z.object({
   rating: z.number().optional(),
   brand: z.string().optional(),
   discountPercentage: z.number().optional(),
+  is_purchasable: z.boolean().optional().default(true),
 });
 
 const ProductResultSchema = z.object({
@@ -79,6 +80,7 @@ const ProductResultGrid = ({
           key={p.id}
           {...p}
           imageUrl={p.thumbnail}
+          isPurchasable={p.is_purchasable}
         />
       ))}
     </div>

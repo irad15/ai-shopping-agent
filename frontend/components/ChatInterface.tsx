@@ -72,8 +72,12 @@ export function ChatInterface() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 bg-zinc-950 border-b border-zinc-800 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-500/10 rounded-lg">
-            <BriefcaseBusiness className="w-5 h-5 text-indigo-400" />
+          <div className="w-12 h-12 bg-zinc-900 rounded-full border border-zinc-800 overflow-hidden flex items-center justify-center p-1.5 shadow-sm shadow-indigo-500/10">
+            <img
+              src="/symbol_dark.png"
+              alt="Logo"
+              className="w-full h-full object-contain rounded-full"
+            />
           </div>
           <div>
             <h2 className="text-sm font-semibold text-zinc-100">Irad&apos;s AI Assistant</h2>
@@ -102,9 +106,13 @@ export function ChatInterface() {
       */}
       <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto p-6 space-y-6">
         <ThreadPrimitive.Empty>
-          <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-4 opacity-50 min-h-[300px]">
-            <BriefcaseBusiness className="w-12 h-12" />
-            <p>Ready to help. How can I assist you today?</p>
+          <div className="flex flex-col items-center justify-center h-full text-zinc-500 gap-6 min-h-[300px]">
+            <img
+              src="/symbol_dark.png"
+              alt="Logo"
+              className="w-16 h-16 object-contain rounded-full grayscale invert opacity-50"
+            />
+            <p className="text-sm font-semibold tracking-wider text-zinc-400">Ready to help. How can I assist you today?</p>
           </div>
         </ThreadPrimitive.Empty>
 

@@ -15,6 +15,8 @@ import { AssistantRuntimeProvider } from '@assistant-ui/react';
 import { useDataStreamRuntime } from '@assistant-ui/react-data-stream';
 import { ChatInterface } from '@/components/ChatInterface';
 import { ProductDiscoveryUI } from '@/components/ProductDiscoveryUI';
+import { ProductModalProvider } from '@/context/ProductModalContext';
+import { ProductModal } from '@/components/ProductModal';
 import { v4 as uuidv4 } from 'uuid';
 
 export function ChatRuntimeProvider() {
@@ -80,10 +82,14 @@ export function ChatRuntimeProvider() {
      * This allows components like ChatInterface and ProductDiscoveryUI to access
      * and interact with the AI conversation state.
      */
-    <AssistantRuntimeProvider runtime={runtime}>
-      <ChatInterface />
-      {/* Tool UIs must be inside the provider to access runtime context */}
-      <ProductDiscoveryUI />
-    </AssistantRuntimeProvider>
+    <ProductModalProvider>
+      <AssistantRuntimeProvider runtime={runtime}>
+        <ChatInterface />
+        {/* Tool UIs must be inside the provider to access runtime context */}
+        <ProductDiscoveryUI />
+      </AssistantRuntimeProvider>
+      {/* Global Product Modal */}
+      <ProductModal />
+    </ProductModalProvider>
   );
 }
