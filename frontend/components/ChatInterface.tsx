@@ -106,13 +106,26 @@ export function ChatInterface() {
       */}
       <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto p-6 space-y-6">
         <ThreadPrimitive.Empty>
-          <div className="flex flex-col items-center justify-center h-full text-zinc-500 gap-6 min-h-[300px]">
-            <img
-              src="/symbol_dark.png"
-              alt="Logo"
-              className="w-16 h-16 object-contain rounded-full grayscale invert opacity-50"
-            />
-            <p className="text-sm font-semibold tracking-wider text-zinc-400">Ready to help. How can I assist you today?</p>
+          <div className="flex flex-col items-center justify-center h-full text-zinc-500 gap-8 min-h-[400px] text-center px-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full" />
+              <img
+                src="/symbol_dark.png"
+                alt="Logo"
+                className="relative w-20 h-20 object-contain rounded-full grayscale invert opacity-80 border border-zinc-800/50 shadow-2xl"
+              />
+            </div>
+            <div className="space-y-2 max-w-sm">
+              <h2 className="text-3xl font-black text-zinc-100 tracking-tight">
+                Hi there! 👋
+              </h2>
+              <p className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent italic">
+                I'm your AI Shopping Copilot.
+              </p>
+              <p className="text-sm font-medium text-zinc-500 pt-2 leading-relaxed">
+                What kind of products can I help you find today?
+              </p>
+            </div>
           </div>
         </ThreadPrimitive.Empty>
 

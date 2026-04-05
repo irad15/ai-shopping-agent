@@ -82,34 +82,26 @@ Open [http://localhost:3000](http://localhost:3000) to start shopping.
 *   **Real-time Streaming:** Leverages the Vercel AI SDK protocol for low-latency, character-by-character response streaming.
 
 ### **Production-Grade Improvements**
-*   **Salesman Framework:** Injected a strict conversational protocol. The agent is instructed to ask qualifying questions before searching, limiting "interrogation" (max 2 questions per turn) and avoiding premature tool calls.
-*   **Inventory Business Rules:** A custom backend interceptor calculates `is_purchasable` (stock ≥ minimumOrderQuantity) and strictly strips sensitive fields like `minimumOrderQuantity` before the LLM or frontend ever sees them.
-*   **Strict Brand Filtering:** To overcome the broadness of basic keyword search APIs, we implemented a Python-layer brand filter that ensures "Urban Chic" queries return *exclusively* that brand, with no irrelevant "similar" results.
-*   **Performance-First UI:** Implemented a **Global Product Modal** using React Context. This prevents DOM bloat by rendering only a single modal instance for the entire application, shared by all 100+ potential product cards.
-*   **Contextual Review Synthesis:** Automatically sanitizes product reviews (stripping PII and dates) and instructs the LLM to weave synthesized customer sentiment directly into the conversation.
+to add here
 
 ---
 
 ## 🧠 Design Philosophy
 
 ### **Assumptions**
-*   **Consultative First:** We assume a shopping agent should be a "copilot," not just a search bar. The priority is user understanding over instant results.
-*   **Data Integrity:** We assume internal business logic (like minimum order quantities) is proprietary and must be hidden from the AI's generation context for security.
+to add here
+
 
 ### **Tradeoffs**
-*   **Latency vs. Accuracy:** We perform post-fetch filtering in Python to fix API broadness. This adds a few milliseconds of latency but guarantees brand accuracy—a tradeoff essential for a "Premium" feel.
-*   **Context Window vs. Detail:** We sanitize reviews to keep only `rating` and `comment`. We lose the "Who said it," but we save ~40% in token costs per product list.
+to add here
 
 ### **Limitations**
-*   **Mock API:** The project currently relies on `DummyJSON`. While perfectly functional for this demonstration, a real-world deployment would require a more robust ElasticSearch/VectorDB backend for semantic search.
-*   **Local State:** `thread_id` is currently persisted in `localStorage` for convenience. A full production user system would tie these to an authenticated User ID.
+to add here
 
 ---
 
 ## 🎨 Aesthetics
-The UI is designed to feel **State-of-the-Art**:
-- **Glassmorphism:** Deep backdrop blurs and semi-transparent surfaces.
-- **Micro-animations:** Powered by `framer-motion` for smooth modal transitions and "Out of Stock" overlays.
-- **Premium Dark Mode:** A zinc-based color palette with indigo accents for a sophisticated "Consultant" vibe.
+to add here
+
 
 ---

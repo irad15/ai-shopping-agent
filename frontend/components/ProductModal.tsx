@@ -116,63 +116,66 @@ export function ProductModal() {
             </div>
 
             {/* Right: Content Section */}
-            <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col overflow-y-auto">
-              <div className="flex-1 space-y-4">
-                {brand && (
-                  <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-indigo-400" />
-                    <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
+            <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col overflow-y-auto">
+              <div className="flex-1 space-y-6">
+                <div className="space-y-2">
+                  {brand && (
+                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
                       {brand}
                     </span>
-                  </div>
-                )}
+                  )}
+                  <h2 id="modal-title" className="text-3xl font-black text-zinc-50 leading-tight">
+                    {title}
+                  </h2>
+                </div>
 
-                <h2 id="modal-title" className="text-2xl font-bold text-zinc-100 leading-tight">
-                  {title}
-                </h2>
-
-                <div className="flex items-center gap-4">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-emerald-400">
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col">
+                    <span className="text-4xl font-black text-emerald-400 tracking-tighter">
                       ${discPrice ?? price.toFixed(2)}
                     </span>
                     {discPrice && (
-                      <span className="text-lg text-zinc-600 line-through">
-                        ${price.toFixed(2)}
+                      <span className="text-sm text-zinc-500 line-through font-medium">
+                        Original: ${price.toFixed(2)}
                       </span>
                     )}
                   </div>
 
                   {rating && (
-                    <div className="flex items-center gap-1.5 bg-zinc-800/80 rounded-full px-3 py-1 border border-zinc-700">
+                    <div className="flex items-center gap-2 bg-zinc-900 rounded-2xl px-4 py-2 border border-zinc-800">
                       <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                      <span className="text-sm text-zinc-100 font-bold">
+                      <span className="text-base text-zinc-100 font-bold">
                         {rating.toFixed(1)}
                       </span>
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Description</h4>
-                  <p className="text-sm text-zinc-300 leading-relaxed">
+                <div className="pt-6 border-t border-zinc-800/50 space-y-3">
+                  <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Product Overview</h4>
+                  <p className="text-base text-zinc-400 leading-relaxed font-medium">
                     {description}
                   </p>
                 </div>
               </div>
 
               {/* Action Section */}
-              <div className="pt-8">
+              <div className="pt-10">
                 <button
                   disabled={!isPurchasable}
-                  className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-xl shadow-indigo-500/10 ${isPurchasable
-                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer active:scale-[0.98]'
-                    : 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700'
+                  className={`w-full py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all ${isPurchasable
+                      ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_20px_50px_rgba(79,70,229,0.2)] active:scale-[0.98]'
+                      : 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700'
                     }`}
                 >
-                  <ShoppingCart className="w-5 h-5" />
+                  <ShoppingCart className="w-6 h-6" />
                   {isPurchasable ? 'Add to Cart' : 'Currently Out of Stock'}
                 </button>
+                {isPurchasable && (
+                  <p className="text-center mt-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                    Free shipping on orders over $50
+                  </p>
+                )}
               </div>
             </div>
           </motion.div>
