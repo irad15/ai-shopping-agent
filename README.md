@@ -31,9 +31,8 @@ This project uses `uv` for lightning-fast Python dependency management. If you d
 #### **Your Connection String**
 Regardless of your choice, you will need a `DATABASE_URL` for your `.env` file:
 - **For local Docker:** `postgresql://postgres:postgres@localhost:5432/postgres`
-- **For Cloud (e.g. Supabase):** `postgresql://user:pass@host:port/db?sslmode=require`
 
-#### **Option A: Local Docker (Recommended)**
+#### **Local Docker**
 Start the PostgreSQL instance in the background:
 ```bash
 cd backend
@@ -64,7 +63,7 @@ OPENAI_API_KEY=your_openai_key
 uv run python main.py
 ```
 
-### 2. Frontend Setup
+### 2. Frontend Setup (Open a new terminal)
 ```bash
 cd frontend
 
