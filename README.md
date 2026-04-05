@@ -29,7 +29,7 @@ This project uses `uv` for lightning-fast Python dependency management. If you d
 ## 🚀 Quick Start
 
 #### **Your Connection String**
-Regardless of your choice, you will need a `DATABASE_URL` for your `.env` file:
+Regardless of your choice, you will need a `DATABASE_URL` for your `.env` file (located in the `backend/` folder):
 - **For local Docker:** `postgresql://postgres:postgres@localhost:5432/postgres`
 
 #### **Local Docker**
@@ -55,7 +55,7 @@ cd backend
 # Install dependencies
 uv sync
 
-# Set up environment variables (.env)
+# Set up environment variables (Create .env inside the /backend folder)
 DATABASE_URL=your_postgres_url
 OPENAI_API_KEY=your_openai_key
 
