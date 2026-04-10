@@ -124,6 +124,7 @@ async def chat_endpoint(request: ChatRequest, fast_req: Request):
             headers={
                 "X-Accel-Buffering": "no",
                 "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
             }
         )
     except Exception as e:
