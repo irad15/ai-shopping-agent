@@ -17,8 +17,10 @@ export async function POST(req: NextRequest) {
     body.messages = [body.messages[body.messages.length - 1]];
   }
 
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
   // 2. OUT TO BACKEND: Send the heavily compressed payload to the Python server.
-  const response = await fetch('http://localhost:8000/chat', {
+  const response = await fetch(`${backendUrl}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

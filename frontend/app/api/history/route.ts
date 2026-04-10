@@ -16,8 +16,10 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
   try {
-    const response = await fetch(`http://localhost:8000/history/${threadId}`, {
+    const response = await fetch(`${backendUrl}/history/${threadId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
