@@ -120,7 +120,7 @@ async def chat_endpoint(request: ChatRequest, fast_req: Request):
         
         return StreamingResponse(
             stream_generator(agent, request.thread_id, request.messages), 
-            media_type="text/plain",
+            media_type="text/event-stream",
             headers={
                 "X-Accel-Buffering": "no",
                 "Cache-Control": "no-cache",
