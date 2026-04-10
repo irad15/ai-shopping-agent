@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
     if db_url := os.getenv("DATABASE_URL"):
         try:
             # 1. Initialize Postgres Connection Pool
-            pool = AsyncConnectionPool(db_url, kwargs={"autocommit": True}, open=False)
+            pool = AsyncConnectionPool(db_url, kwargs={"autocommit": True, "prepare_threshold": None}, open=False)
             await pool.open(timeout=3.0)
             
             # 2. Setup LangGraph Postgres Checkpointer

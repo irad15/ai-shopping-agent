@@ -1,0 +1,41 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+*.egg
+
+# Virtual environments
+.venv
+env/
+venv/
+
+# Environment variables
+.env
+.env.*
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Type checking & Linting
+.mypy_cache/
+.ruff_cache/
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Databases
+*.sqlite3
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
